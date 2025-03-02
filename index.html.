@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>القرآن الكريم</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@600&display=swap');
+
+        body {
+            font-family: 'Amiri', serif;
+            background: #f9fafb;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        select {
+            padding: 12px;
+            font-size: 18px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #333;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .ayahs {
+            font-size: 22px;
+            line-height: 1.8;
+            direction: rtl;
+            text-align: right;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-top: 30px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .ayahs p {
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .ayahs p span {
+            font-weight: normal;
+        }
+
+        .error {
+            color: red;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .ayahs .bismillah {
+            font-size: 24px;
+            font-weight: bold;
+            color: #7f8c8d;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 القرآن الكريم</h1>
+        <select id="surahSelect"></select>
+        <div id="ayahs" class="ayahs">
+            <p>اختر السورة لعرض الآيات...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const surahSelect = document.getElementById("surahSelect");
+            const ayahsDiv = document.getElementById("ayahs");
+
+            // Массив с номерами сур и их названиями
+            const surahs = [
+                { name: "الفاتحة", number: 1 },
+                { name: "البقرة", number: 2 },
+                { name: "آل عمران", number: 3 },
+                { name: "النساء", number: 4 },
+                { name: "المائدة", number: 5 },
+                { name: "الأنعام", number: 6 },
+                { name: "الأعراف", number: 7 },
+                { name: "الأنفال", number: 8 },
+                { name: "التوبة", number: 9 },
+                { name: "يونس", number: 10 },
+                { name: "هود", number: 11 },
+                { name: "يوسف", number: 12 },
+                { name: "إبراهيم", number: 14 },
+                { name: "الحجر", number: 15 },
+                { name: "النحل", number: 16 },
+                { name: "الإسراء", number: 17 },
+                { name: "الكهف", number: 18 },
+                { name: "مريم", number: 19 },
+                { name: "طه", number: 20 },
+                { name: "الأنبياء", number: 21 },
+                { name: "الحج", number: 22 },
+                { name: "المؤمنون", number: 23 },
+                { name: "الفرقان", number: 25 },
+                { name: "النمل", number: 27 },
+                { name: "العنكبوت", number: 29 },
+                { name: "الروم", number: 30 },
+                { name: "لقمان", number: 31 },
+                { name: "السجدة", number: 32 },
+                { name: "الأحزاب", number: 33 },
+                { name: "يس", number: 36 },
+                { name: "الصافات", number: 37 },
+                { name: "فصلت", number: 41 },
+                { name: "الزمر", number: 39 },
+                { name: "فاطر", number: 35 },
+                { name: "الملك", number: 67 },
+                { name: "القيامة", number: 75 },
+                { name: "الإنسان", number: 76 },
+                { name: "المزمل", number: 73 },
+                { name: "المدثر", number: 74 },
+                { name: "العاديات", number: 100 },
+                { name: "الكوثر", number: 108 },
+                { name: "الإخلاص", number: 112 },
+                { name: "الفلق", number: 113 },
+                { name: "الناس", number: 114 }
+            ];
+
+            // Заполнение выпадающего списка сур
+            surahs.forEach(surah => {
+                const option = document.createElement("option");
+                option.value = surah.number;
+                option.textContent = surah.name;
+                surahSelect.appendChild(option);
+            });
+
+            // Функция для загрузки аятов
+            async function loadAyahs(surahNumber) {
+                ayahsDiv.innerHTML = "<p>تحميل الآيات...</p>";
+
+                try {
+                    const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`);
+                    const data = await response.json();
+
+                    if (data && data.data && data.data.ayahs) {
+                        ayahsDiv.innerHTML = "";
+
+                        // Добавляем "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ" только один раз перед началом суры
+                        const bismillah = document.createElement("div");
+                        bismillah.classList.add("bismillah");
+                        bismillah.textContent = "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ";
+                        ayahsDiv.appendChild(bismillah);
+
+                        // Добавляем аяты, начиная с первого аята, без повторения "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ"
+                        data.data.ayahs.forEach(ayah => {
+                            const p = document.createElement("p");
+                            p.innerHTML = `<span>(${ayah.numberInSurah})</span> ${ayah.text}`;
+                            ayahsDiv.appendChild(p);
+                        });
+                    } else {
+                        ayahsDiv.innerHTML = "<p class='error'>خطأ في تحميل الآيات.</p>";
+                    }
+                } catch (error) {
+                    ayahsDiv.innerHTML = "<p class='error'>خطأ في الاتصال.</p>";
+                }
+            }
+
+            // Обработчик изменения выбора суры
+            surahSelect.addEventListener("change", function () {
+                loadAyahs(this.value);
+            });
+
+            // Загружаем по умолчанию первую суру
+            loadAyahs(surahSelect.value);
+        });
+    </script>
+</body>
+</html>
